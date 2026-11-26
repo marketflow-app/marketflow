@@ -65,9 +65,18 @@
                 <form id="product-form" onsubmit="addProduct(event)" class="space-y-3">
                     <input type="text" id="p-name" required placeholder="Nom du produit" class="w-full p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <input type="number" id="p-price" required placeholder="Prix (ex: 99)" step="0.01" class="w-full p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <input type="text" id="p-image" placeholder="URL de l'image (laisser vide si pas d'image)" class="w-full p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    
+                    <!-- Champ d'upload d'image -->
+                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center">
+                        <label for="p-image-file" class="cursor-pointer block">
+                            <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span id="file-label" class="text-sm text-gray-500">Choisir une photo depuis ton téléphone</span>
+                        </label>
+                        <input type="file" id="p-image-file" accept="image/*" class="hidden" onchange="updateFileLabel()">
+                    </div>
+
                     <input type="text" id="p-category" required placeholder="Catégorie (ex: Sneakers)" class="w-full p-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <button type="submit" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition">Ajouter le produit</button>
+                    <button type="submit" id="submit-product-btn" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition">Ajouter le produit</button>
                 </form>
             </div>
 
@@ -194,7 +203,7 @@
                 alert("Erreur: " + error.message);
                 return;
             }
-            loadOrders(); // Recharger la liste
+            loadOrders();
         }
 
         // --- CHARGEMENT DES PRODUITS ---
@@ -235,23 +244,71 @@
             });
         }
 
+        // --- UPLOAD D'IMAGE ET AJOUT DE PRODUIT ---
+        window.updateFileLabel = function() {
+            const fileInput = document.getElementById('p-image-file');
+            const label = document.getElementById('file-label');
+            if (fileInput.files.length > 0) {
+                label.textContent = `📷 ${fileInput.files[0].name}`;
+                label.classList.add('text-purple-600', 'font-semibold');
+            }
+        }
+
         window.addProduct = async function(event) {
             event.preventDefault();
+            const submitBtn = document.getElementById('submit-product-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Ajout en cours...';
+
             const name = document.getElementById('p-name').value;
             const price = parseFloat(document.getElementById('p-price').value);
-            const imageUrl = document.getElementById('p-image').value;
             const category = document.getElementById('p-category').value;
+            const fileInput = document.getElementById('p-image-file');
+            
+            let imageUrl = '';
 
+            // 1. Upload de l'image si sélectionnée
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('product-images')
+                    .upload(fileName, file);
+
+                if (uploadError) {
+                    alert("Erreur lors de l'upload de l'image: " + uploadError.message);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Ajouter le produit';
+                    return;
+                }
+
+                const { data: urlData } = supabase.storage
+                    .from('product-images')
+                    .getPublicUrl(fileName);
+                
+                imageUrl = urlData.publicUrl;
+            }
+
+            // 2. Insertion du produit
             const { error } = await supabase
                 .from('products')
                 .insert([{ name, price, image_url: imageUrl, category }]);
 
             if (error) {
                 alert("Erreur: " + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Ajouter le produit';
                 return;
             }
 
             document.getElementById('product-form').reset();
+            document.getElementById('file-label').textContent = 'Choisir une photo depuis ton téléphone';
+            document.getElementById('file-label').classList.remove('text-purple-600', 'font-semibold');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Ajouter le produit';
+            
             alert("Produit ajouté avec succès !");
             loadProductsAdmin();
         }
@@ -269,10 +326,7 @@
             }
             loadProductsAdmin();
         }
-
-        // Chargement initial (si déjà connecté)
-        // On laisse l'écran de login par défaut pour la sécurité
     </script>
 
 </body>
-  </html>
+</html>
