@@ -56,23 +56,23 @@
     <div class="mt-6 px-4">
         <h3 class="font-bold text-gray-800 mb-3">Catégories</h3>
         <div class="flex gap-4 overflow-x-auto pb-2">
-            <div onclick="filterCategory('Mode')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Mode', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">👕</span>
                 <p class="text-xs mt-1 font-medium">Mode</p>
             </div>
-            <div onclick="filterCategory('Électronique')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Électronique', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">🎧</span>
                 <p class="text-xs mt-1 font-medium">Électronique</p>
             </div>
-            <div onclick="filterCategory('Maison')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Maison', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">🏠</span>
                 <p class="text-xs mt-1 font-medium">Maison</p>
             </div>
-            <div onclick="filterCategory('Beauté')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Beauté', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">💄</span>
                 <p class="text-xs mt-1 font-medium">Beauté</p>
             </div>
-            <div onclick="filterCategory('Tous')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Tous', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">🛍️</span>
                 <p class="text-xs mt-1 font-medium">Tous</p>
             </div>
@@ -379,7 +379,7 @@
             grid.innerHTML = '';
 
             if (products.length === 0) {
-                grid.innerHTML = '<p class="col-span-2 text-center text-gray-500 py-4">Aucun produit dans cette catégorie.</p>';
+                grid.innerHTML = '<p class="col-span-2 text-center text-gray-500 py-4">Aucun produit trouvé.</p>';
                 return;
             }
 
@@ -404,7 +404,7 @@
         }
 
         // --- FILTRAGE PAR CATÉGORIE ---
-        window.filterCategory = function(category) {
+        window.filterCategory = function(category, btnElement) {
             currentCategory = category;
             
             // Mettre à jour l'apparence des boutons
@@ -412,8 +412,9 @@
                 btn.classList.remove('category-active');
             });
             
-            // Trouver le bouton cliqué et l'activer
-            event.currentTarget.classList.add('category-active');
+            if (btnElement) {
+                btnElement.classList.add('category-active');
+            }
             
             // Filtrer les produits
             let filtered = allProducts;
@@ -425,19 +426,26 @@
             document.getElementById('category-title').textContent = category === 'Tous' ? 'Tous les produits' : category;
             
             renderProducts(filtered);
+            
+            // Réinitialiser la recherche
+            document.getElementById('search-input').value = '';
         }
 
         // --- RECHERCHE ---
-        document.getElementById('search-input').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
+        const searchInput = document.getElementById('search-input');
+        
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase().trim();
             let filtered = allProducts;
             
+            // Filtrer d'abord par catégorie
             if (currentCategory !== 'Tous') {
                 filtered = filtered.filter(p => p.category && p.category.toLowerCase().includes(currentCategory.toLowerCase()));
             }
             
-            if (query) {
-                filtered = filtered.filter(p => p.name.toLowerCase().includes(query));
+            // Ensuite filtrer par recherche
+            if (query !== '') {
+                filtered = filtered.filter(p => p.name && p.name.toLowerCase().includes(query));
             }
             
             renderProducts(filtered);
