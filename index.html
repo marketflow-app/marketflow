@@ -16,6 +16,11 @@
             font-size: 10px; display: flex; align-items: center; justify-content: center;
             font-weight: bold;
         }
+        .category-active {
+            background-color: #7c3aed !important;
+            color: white !important;
+        }
+        .category-active span { color: white; }
     </style>
 </head>
 <body class="pb-24">
@@ -27,7 +32,7 @@
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                 <h1 class="text-2xl font-bold">Marketflow</h1>
             </div>
-            <button class="bg-white/20 p-2 rounded-full">
+            <button onclick="alert('Fonctionnalité bientôt disponible !')" class="bg-white/20 p-2 rounded-full">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </button>
         </div>
@@ -51,21 +56,25 @@
     <div class="mt-6 px-4">
         <h3 class="font-bold text-gray-800 mb-3">Catégories</h3>
         <div class="flex gap-4 overflow-x-auto pb-2">
-            <div class="bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px]">
+            <div onclick="filterCategory('Mode')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">👕</span>
                 <p class="text-xs mt-1 font-medium">Mode</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px]">
+            <div onclick="filterCategory('Électronique')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">🎧</span>
                 <p class="text-xs mt-1 font-medium">Électronique</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px]">
+            <div onclick="filterCategory('Maison')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">🏠</span>
                 <p class="text-xs mt-1 font-medium">Maison</p>
             </div>
-            <div class="bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px]">
+            <div onclick="filterCategory('Beauté')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
                 <span class="text-2xl">💄</span>
                 <p class="text-xs mt-1 font-medium">Beauté</p>
+            </div>
+            <div onclick="filterCategory('Tous')" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+                <span class="text-2xl">🛍️</span>
+                <p class="text-xs mt-1 font-medium">Tous</p>
             </div>
         </div>
     </div>
@@ -73,7 +82,7 @@
     <!-- Produits -->
     <div class="mt-6 px-4">
         <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-gray-800">Sneakers Homme</h3>
+            <h3 id="category-title" class="font-bold text-gray-800">Tous les produits</h3>
             <a href="#" class="text-purple-600 text-sm font-semibold">Voir tout</a>
         </div>
         <div id="product-grid" class="grid grid-cols-2 gap-4">
@@ -154,7 +163,7 @@
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
             <span class="text-xs mt-1">Accueil</span>
         </a>
-        <a href="#" class="text-gray-400 flex flex-col items-center">
+        <a href="#" onclick="alert('Fonctionnalité bientôt disponible !')" class="text-gray-400 flex flex-col items-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
             <span class="text-xs mt-1">Favoris</span>
         </a>
@@ -163,7 +172,7 @@
             <span class="text-xs mt-1">Panier</span>
             <span id="cart-badge" class="cart-badge hidden">0</span>
         </a>
-        <a href="#" class="text-gray-400 flex flex-col items-center">
+        <a href="#" onclick="alert('Fonctionnalité bientôt disponible !')" class="text-gray-400 flex flex-col items-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             <span class="text-xs mt-1">Profil</span>
         </a>
@@ -341,6 +350,7 @@
 
         // --- CHARGEMENT DES PRODUITS ---
         let allProducts = [];
+        let currentCategory = 'Tous';
 
         async function loadProducts() {
             const grid = document.getElementById('product-grid');
@@ -368,6 +378,11 @@
             const grid = document.getElementById('product-grid');
             grid.innerHTML = '';
 
+            if (products.length === 0) {
+                grid.innerHTML = '<p class="col-span-2 text-center text-gray-500 py-4">Aucun produit dans cette catégorie.</p>';
+                return;
+            }
+
             products.forEach(product => {
                 const imageHtml = product.image_url 
                     ? `<img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover">` 
@@ -388,17 +403,49 @@
             });
         }
 
+        // --- FILTRAGE PAR CATÉGORIE ---
+        window.filterCategory = function(category) {
+            currentCategory = category;
+            
+            // Mettre à jour l'apparence des boutons
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('category-active');
+            });
+            
+            // Trouver le bouton cliqué et l'activer
+            event.currentTarget.classList.add('category-active');
+            
+            // Filtrer les produits
+            let filtered = allProducts;
+            if (category !== 'Tous') {
+                filtered = allProducts.filter(p => p.category && p.category.toLowerCase().includes(category.toLowerCase()));
+            }
+            
+            // Mettre à jour le titre
+            document.getElementById('category-title').textContent = category === 'Tous' ? 'Tous les produits' : category;
+            
+            renderProducts(filtered);
+        }
+
         // --- RECHERCHE ---
         document.getElementById('search-input').addEventListener('input', function(e) {
             const query = e.target.value.toLowerCase();
-            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query));
+            let filtered = allProducts;
+            
+            if (currentCategory !== 'Tous') {
+                filtered = filtered.filter(p => p.category && p.category.toLowerCase().includes(currentCategory.toLowerCase()));
+            }
+            
+            if (query) {
+                filtered = filtered.filter(p => p.name.toLowerCase().includes(query));
+            }
+            
             renderProducts(filtered);
         });
 
         // --- OUVRIR LE PANIER SI ON VIENT DE LA PAGE DÉTAIL ---
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('openCart') === 'true') {
-            // Attendre un peu que le DOM soit prêt
             setTimeout(() => { openCart(); }, 500);
         }
 
