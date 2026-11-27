@@ -143,6 +143,17 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Adresse de livraison</label>
                     <textarea id="customer-address" required rows="3" class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Ex: Quartier, Rue, Ville..."></textarea>
                 </div>
+                
+                <!-- Menu déroulant pour le mode de paiement -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mode de paiement</label>
+                    <select id="payment-method" required class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                        <option value="Paiement à la livraison">💵 Paiement à la livraison</option>
+                        <option value="Mobile Money">📱 Mobile Money (Wave, Orange, MTN...)</option>
+                        <option value="WhatsApp">💬 Commander via WhatsApp</option>
+                    </select>
+                </div>
+
                 <div class="bg-gray-50 p-4 rounded-xl">
                     <div class="flex justify-between items-center">
                         <span class="font-bold text-gray-800">Total à payer</span>
@@ -310,6 +321,7 @@
             const name = document.getElementById('customer-name').value;
             const phone = document.getElementById('customer-phone').value;
             const address = document.getElementById('customer-address').value;
+            const paymentMethod = document.getElementById('payment-method').value;
             const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
             const itemsForDb = cart.map(item => ({
@@ -321,7 +333,7 @@
                 color: item.selectedColor || null
             }));
 
-            // 1. Enregistrer la commande dans Supabase
+            // 1. Enregistrer la commande dans Supabase (avec le mode de paiement)
             const { error } = await supabase
                 .from('orders')
                 .insert([
@@ -331,6 +343,7 @@
                         customer_address: address,
                         total_amount: total,
                         items: itemsForDb,
+                        payment_method: paymentMethod,
                         status: 'pending'
                     }
                 ]);
@@ -355,15 +368,31 @@
                     customer_address: address,
                     total_amount: total.toFixed(2),
                     items_list: itemsList,
+                    payment_method: paymentMethod,
                     order_date: new Date().toLocaleString('fr-FR')
                 });
                 console.log('Email de notification envoyé !');
             } catch (emailError) {
                 console.error('Erreur envoi email:', emailError);
-                // On ne bloque pas la commande si l'email échoue
             }
 
-            // 3. Vider le panier et afficher le succès
+            // 3. Si le client a choisi WhatsApp, on prépare le message
+            if (paymentMethod === 'WhatsApp') {
+                const whatsappMessage = encodeURIComponent(
+                    `Bonjour Marketflow ! Je viens de passer la commande suivante :\n\n` +
+                    `👤 Nom : ${name}\n` +
+                    `📞 Téléphone : ${phone}\n` +
+                    `📍 Adresse : ${address}\n\n` +
+                    `🛒 Articles :\n${itemsList}\n\n` +
+                    `💰 Total : ${total.toFixed(2)} $\n\n` +
+                    `Merci de me confirmer la disponibilité et les modalités de paiement.`
+                );
+                // ⚠️ REMPLACE LE NUMÉRO PAR TON VRAI NUMÉRO WHATSAPP (format international, sans +)
+                const myWhatsAppNumber = "2250102030405"; 
+                window.open(`https://wa.me/${myWhatsAppNumber}?text=${whatsappMessage}`, '_blank');
+            }
+
+            // 4. Vider le panier et afficher le succès
             cart = [];
             localStorage.removeItem('marketflow_cart');
             updateCartUI();
