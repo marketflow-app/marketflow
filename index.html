@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marketflow - Boutique</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- EmailJS pour les notifications de commande -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            // ⚠️ REMPLACE "TA_PUBLIC_KEY" PAR TA VRAIE CLÉ PUBLIQUE EMAILJS
+            emailjs.init("TA_PUBLIC_KEY"); 
+        })();
+    </script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
         body { font-family: 'Poppins', sans-serif; background-color: #f3f4f6; }
@@ -312,6 +322,7 @@
                 color: item.selectedColor || null
             }));
 
+            // 1. Enregistrer la commande dans Supabase
             const { error } = await supabase
                 .from('orders')
                 .insert([
@@ -333,6 +344,27 @@
                 return;
             }
 
+            // 2. Envoyer la notification par email via EmailJS
+            try {
+                const itemsList = cart.map(item => 
+                    `${item.quantity}x ${item.name}${item.selectedSize ? ' (Taille: ' + item.selectedSize + ')' : ''}${item.selectedColor ? ' (' + item.selectedColor + ')' : ''} - ${item.price} $`
+                ).join('\n');
+
+                await emailjs.send("service_p9j63n9", "template_qnr5lgq", {
+                    customer_name: name,
+                    customer_phone: phone,
+                    customer_address: address,
+                    total_amount: total.toFixed(2),
+                    items_list: itemsList,
+                    order_date: new Date().toLocaleString('fr-FR')
+                });
+                console.log('Email de notification envoyé !');
+            } catch (emailError) {
+                console.error('Erreur envoi email:', emailError);
+                // On ne bloque pas la commande si l'email échoue
+            }
+
+            // 3. Vider le panier et afficher le succès
             cart = [];
             localStorage.removeItem('marketflow_cart');
             updateCartUI();
@@ -407,7 +439,6 @@
         window.filterCategory = function(category, btnElement) {
             currentCategory = category;
             
-            // Mettre à jour l'apparence des boutons
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.classList.remove('category-active');
             });
@@ -416,18 +447,14 @@
                 btnElement.classList.add('category-active');
             }
             
-            // Filtrer les produits
             let filtered = allProducts;
             if (category !== 'Tous') {
                 filtered = allProducts.filter(p => p.category && p.category.toLowerCase().includes(category.toLowerCase()));
             }
             
-            // Mettre à jour le titre
             document.getElementById('category-title').textContent = category === 'Tous' ? 'Tous les produits' : category;
             
             renderProducts(filtered);
-            
-            // Réinitialiser la recherche
             document.getElementById('search-input').value = '';
         }
 
@@ -438,12 +465,10 @@
             const query = e.target.value.toLowerCase().trim();
             let filtered = allProducts;
             
-            // Filtrer d'abord par catégorie
             if (currentCategory !== 'Tous') {
                 filtered = filtered.filter(p => p.category && p.category.toLowerCase().includes(currentCategory.toLowerCase()));
             }
             
-            // Ensuite filtrer par recherche
             if (query !== '') {
                 filtered = filtered.filter(p => p.name && p.name.toLowerCase().includes(query));
             }
