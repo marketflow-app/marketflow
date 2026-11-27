@@ -173,6 +173,7 @@
             </div>
             <h3 class="text-2xl font-bold text-gray-800 mb-2">Commande Placée !</h3>
             <p class="text-gray-500 mb-6">Votre commande a été enregistrée avec succès. Nous vous contacterons pour la livraison.</p>
+            <!-- Le bouton sera modifié dynamiquement par le script -->
             <button onclick="closeSuccess()" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition">Retour à la boutique</button>
         </div>
     </div>
@@ -333,7 +334,7 @@
                 color: item.selectedColor || null
             }));
 
-            // 1. Enregistrer la commande dans Supabase (avec le mode de paiement)
+            // 1. Enregistrer la commande dans Supabase
             const { error } = await supabase
                 .from('orders')
                 .insert([
@@ -356,7 +357,7 @@
                 return;
             }
 
-            // 2. Envoyer la notification par email via EmailJS
+            // 2. Envoyer la notification par email
             try {
                 const itemsList = cart.map(item => 
                     `${item.quantity}x ${item.name}${item.selectedSize ? ' (Taille: ' + item.selectedSize + ')' : ''}${item.selectedColor ? ' (' + item.selectedColor + ')' : ''} - ${item.price} $`
@@ -371,13 +372,17 @@
                     payment_method: paymentMethod,
                     order_date: new Date().toLocaleString('fr-FR')
                 });
-                console.log('Email de notification envoyé !');
             } catch (emailError) {
                 console.error('Erreur envoi email:', emailError);
             }
 
-            // 3. Si le client a choisi WhatsApp, on prépare le message
+            // 3. Préparer le message WhatsApp
+            let whatsappUrl = '';
             if (paymentMethod === 'WhatsApp') {
+                const itemsList = cart.map(item => 
+                    `${item.quantity}x ${item.name}${item.selectedSize ? ' (Taille: ' + item.selectedSize + ')' : ''}${item.selectedColor ? ' (' + item.selectedColor + ')' : ''} - ${item.price} $`
+                ).join('\n');
+                
                 const whatsappMessage = encodeURIComponent(
                     `Bonjour Marketflow ! Je viens de passer la commande suivante :\n\n` +
                     `👤 Nom : ${name}\n` +
@@ -387,19 +392,29 @@
                     `💰 Total : ${total.toFixed(2)} $\n\n` +
                     `Merci de me confirmer la disponibilité et les modalités de paiement.`
                 );
-                // Ton vrai numéro WhatsApp (format international, sans +)
-                const myWhatsAppNumber = "2250500358993"; 
-                // Ouverture dans le même onglet pour éviter les blocages
-                window.location.href = `https://wa.me/${myWhatsAppNumber}?text=${whatsappMessage}`;
+                whatsappUrl = `https://wa.me/2250500358993?text=${whatsappMessage}`;
+            }
+
+            // 4. Vider le panier
+            cart = [];
+            localStorage.removeItem('marketflow_cart');
+            updateCartUI();
+            
+            // 5. Afficher le message de succès
+            closeCheckout();
+            document.getElementById('success-modal').classList.remove('hidden');
+            document.getElementById('success-modal').classList.add('flex');
+
+            // 6. Modifier le bouton du message de succès
+            const successBtn = document.querySelector('#success-modal button');
+            if (paymentMethod === 'WhatsApp' && whatsappUrl) {
+                successBtn.textContent = 'Ouvrir WhatsApp';
+                successBtn.onclick = function() {
+                    window.location.href = whatsappUrl;
+                };
             } else {
-                // 4. Vider le panier et afficher le succès (uniquement si pas WhatsApp)
-                cart = [];
-                localStorage.removeItem('marketflow_cart');
-                updateCartUI();
-                
-                closeCheckout();
-                document.getElementById('success-modal').classList.remove('hidden');
-                document.getElementById('success-modal').classList.add('flex');
+                successBtn.textContent = 'Retour à la boutique';
+                successBtn.onclick = closeSuccess;
             }
         }
 
