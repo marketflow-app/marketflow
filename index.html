@@ -1,4 +1,4 @@
-i<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -388,18 +388,19 @@ i<!DOCTYPE html>
                     `Merci de me confirmer la disponibilité et les modalités de paiement.`
                 );
                 // Ton vrai numéro WhatsApp (format international, sans +)
-                const myWhatsAppNumber = "22500358993"; 
-                window.open(`https://wa.me/${myWhatsAppNumber}?text=${whatsappMessage}`, '_blank');
+                const myWhatsAppNumber = "2250500358993"; 
+                // Ouverture dans le même onglet pour éviter les blocages
+                window.location.href = `https://wa.me/${myWhatsAppNumber}?text=${whatsappMessage}`;
+            } else {
+                // 4. Vider le panier et afficher le succès (uniquement si pas WhatsApp)
+                cart = [];
+                localStorage.removeItem('marketflow_cart');
+                updateCartUI();
+                
+                closeCheckout();
+                document.getElementById('success-modal').classList.remove('hidden');
+                document.getElementById('success-modal').classList.add('flex');
             }
-
-            // 4. Vider le panier et afficher le succès
-            cart = [];
-            localStorage.removeItem('marketflow_cart');
-            updateCartUI();
-            
-            closeCheckout();
-            document.getElementById('success-modal').classList.remove('hidden');
-            document.getElementById('success-modal').classList.add('flex');
         }
 
         window.closeSuccess = function() {
