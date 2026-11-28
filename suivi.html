@@ -64,11 +64,13 @@
             resultsContainer.classList.remove('hidden');
             resultsContainer.innerHTML = '<p class="text-center text-gray-500 py-4">Recherche en cours...</p>';
 
-            // On cherche la commande avec ce numéro
-            const { data: orders, error } = await supabase
+            // On nettoie le numéro entré (on enlève espaces, tirets, +)
+            const cleanPhone = phoneInput.replace(/[\s\-\+]/g, '');
+
+            // On récupère toutes les commandes
+            const { data: allOrders, error } = await supabase
                 .from('orders')
                 .select('*')
-                .eq('customer_phone', phoneInput)
                 .order('created_at', { ascending: false });
 
             if (error) {
@@ -76,7 +78,13 @@
                 return;
             }
 
-            if (!orders || orders.length === 0) {
+            // On filtre les commandes qui contiennent le numéro nettoyé
+            const orders = allOrders ? allOrders.filter(o => {
+                const dbPhone = (o.customer_phone || '').replace(/[\s\-\+]/g, '');
+                return dbPhone.includes(cleanPhone) || cleanPhone.includes(dbPhone);
+            }) : [];
+
+            if (orders.length === 0) {
                 resultsContainer.innerHTML = `
                     <div class="bg-white p-6 rounded-2xl shadow-sm text-center">
                         <p class="text-gray-500">Aucune commande trouvée avec ce numéro.</p>
