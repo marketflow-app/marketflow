@@ -22,7 +22,7 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-        body { font-family: 'Poppins', sans-serif; background-color: #f3f4f6; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f9fafb; }
         .purple-gradient { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
         .cart-badge {
             position: absolute; top: -5px; right: -5px;
@@ -36,6 +36,28 @@
             color: white !important;
         }
         .category-active span { color: white; }
+        
+        /* Animation pour le carrousel */
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+        .carousel-container::-webkit-scrollbar { display: none; } /* Chrome, Safari, Opera */
+        .carousel-slide {
+            scroll-snap-align: start;
+            flex: 0 0 100%;
+        }
+        
+        /* Effet au survol des cartes produits */
+        .product-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .product-card:active {
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body class="pb-24">
@@ -47,8 +69,8 @@
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                 <h1 class="text-2xl font-bold">Marketflow</h1>
             </div>
-            <button onclick="alert('Fonctionnalité bientôt disponible !')" class="bg-white/20 p-2 rounded-full">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            <button onclick="window.location.href='suivi.html'" class="bg-white/20 p-2 rounded-full text-xs font-semibold px-3 py-2">
+                Suivi
             </button>
         </div>
         <div class="mt-6">
@@ -58,38 +80,59 @@
         </div>
     </header>
 
-    <!-- Bannière Promo -->
-    <div class="mx-4 mt-4 bg-purple-100 rounded-2xl p-4 flex justify-between items-center">
-        <div>
-            <p class="text-purple-800 font-bold text-lg">Jusqu'à</p>
-            <p class="text-purple-600 font-bold text-3xl">40% de réduction</p>
+    <!-- Carrousel Promo -->
+    <div class="mt-4 carousel-container">
+        <!-- Slide 1 -->
+        <div class="carousel-slide px-4">
+            <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white relative overflow-hidden shadow-md">
+                <div class="relative z-10 w-2/3">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1 opacity-80">Offre Spéciale</p>
+                    <h2 class="text-2xl font-bold leading-tight mb-2">Jusqu'à 40% de réduction</h2>
+                    <p class="text-sm opacity-90 mb-3">Sur toute la collection de sneakers.</p>
+                    <button class="bg-white text-purple-600 text-xs font-bold px-4 py-2 rounded-full">Profiter</button>
+                </div>
+                <div class="absolute -right-4 -bottom-4 text-8xl opacity-30">👟</div>
+            </div>
         </div>
-        <div class="text-4xl">👟</div>
+        <!-- Slide 2 -->
+        <div class="carousel-slide px-4">
+            <div class="bg-gradient-to-r from-blue-500 to-teal-400 rounded-2xl p-6 text-white relative overflow-hidden shadow-md">
+                <div class="relative z-10 w-2/3">
+                    <p class="text-xs font-bold uppercase tracking-wider mb-1 opacity-80">Nouveauté</p>
+                    <h2 class="text-2xl font-bold leading-tight mb-2">La nouvelle collection est là</h2>
+                    <p class="text-sm opacity-90 mb-3">Découvrez les modèles exclusifs.</p>
+                    <button class="bg-white text-blue-600 text-xs font-bold px-4 py-2 rounded-full">Explorer</button>
+                </div>
+                <div class="absolute -right-4 -bottom-4 text-8xl opacity-30">✨</div>
+            </div>
+        </div>
     </div>
 
     <!-- Catégories -->
     <div class="mt-6 px-4">
-        <h3 class="font-bold text-gray-800 mb-3">Catégories</h3>
-        <div class="flex gap-4 overflow-x-auto pb-2">
-            <div onclick="filterCategory('Mode', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-gray-800 text-lg">Catégories</h3>
+        </div>
+        <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            <div onclick="filterCategory('Mode', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition hover:shadow-md">
                 <span class="text-2xl">👕</span>
-                <p class="text-xs mt-1 font-medium">Mode</p>
+                <p class="text-xs mt-1 font-medium text-gray-600">Mode</p>
             </div>
-            <div onclick="filterCategory('Électronique', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Électronique', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition hover:shadow-md">
                 <span class="text-2xl">🎧</span>
-                <p class="text-xs mt-1 font-medium">Électronique</p>
+                <p class="text-xs mt-1 font-medium text-gray-600">Électronique</p>
             </div>
-            <div onclick="filterCategory('Maison', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Maison', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition hover:shadow-md">
                 <span class="text-2xl">🏠</span>
-                <p class="text-xs mt-1 font-medium">Maison</p>
+                <p class="text-xs mt-1 font-medium text-gray-600">Maison</p>
             </div>
-            <div onclick="filterCategory('Beauté', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Beauté', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition hover:shadow-md">
                 <span class="text-2xl">💄</span>
-                <p class="text-xs mt-1 font-medium">Beauté</p>
+                <p class="text-xs mt-1 font-medium text-gray-600">Beauté</p>
             </div>
-            <div onclick="filterCategory('Tous', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition">
+            <div onclick="filterCategory('Tous', this)" class="category-btn bg-white p-3 rounded-xl shadow-sm text-center min-w-[80px] cursor-pointer active:scale-95 transition hover:shadow-md">
                 <span class="text-2xl">🛍️</span>
-                <p class="text-xs mt-1 font-medium">Tous</p>
+                <p class="text-xs mt-1 font-medium text-gray-600">Tous</p>
             </div>
         </div>
     </div>
@@ -97,7 +140,7 @@
     <!-- Produits -->
     <div class="mt-6 px-4">
         <div class="flex justify-between items-center mb-3">
-            <h3 id="category-title" class="font-bold text-gray-800">Tous les produits</h3>
+            <h3 id="category-title" class="font-bold text-gray-800 text-lg">Tous les produits</h3>
             <a href="#" class="text-purple-600 text-sm font-semibold">Voir tout</a>
         </div>
         <div id="product-grid" class="grid grid-cols-2 gap-4">
@@ -122,7 +165,7 @@
                     <span class="font-bold text-gray-800">Total</span>
                     <span id="cart-total" class="font-bold text-purple-600 text-xl">0 $</span>
                 </div>
-                <button onclick="openCheckout()" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition">Passer Commande</button>
+                <button onclick="openCheckout()" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition shadow-lg shadow-purple-200">Passer Commande</button>
             </div>
         </div>
     </div>
@@ -166,7 +209,7 @@
                         <span id="checkout-total" class="font-bold text-purple-600 text-xl">0 $</span>
                     </div>
                 </div>
-                <button type="submit" id="submit-btn" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition">Confirmer la commande</button>
+                <button type="submit" id="submit-btn" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition shadow-lg shadow-purple-200">Confirmer la commande</button>
             </form>
         </div>
     </div>
@@ -185,23 +228,23 @@
     </div>
 
     <!-- Barre de navigation en bas -->
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around py-3 z-50">
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around py-3 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
         <a href="#" class="text-purple-600 flex flex-col items-center">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
-            <span class="text-xs mt-1">Accueil</span>
+            <span class="text-xs mt-1 font-medium">Accueil</span>
         </a>
         <a href="#" onclick="alert('Fonctionnalité bientôt disponible !')" class="text-gray-400 flex flex-col items-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-            <span class="text-xs mt-1">Favoris</span>
+            <span class="text-xs mt-1 font-medium">Favoris</span>
         </a>
         <a href="#" onclick="openCart()" class="text-gray-400 flex flex-col items-center relative">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-            <span class="text-xs mt-1">Panier</span>
+            <span class="text-xs mt-1 font-medium">Panier</span>
             <span id="cart-badge" class="cart-badge hidden">0</span>
         </a>
         <a href="#" onclick="alert('Fonctionnalité bientôt disponible !')" class="text-gray-400 flex flex-col items-center">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            <span class="text-xs mt-1">Profil</span>
+            <span class="text-xs mt-1 font-medium">Profil</span>
         </a>
     </nav>
 
@@ -237,6 +280,12 @@
             }
             localStorage.setItem('marketflow_cart', JSON.stringify(cart));
             updateCartUI();
+            
+            // Petit effet visuel sur le bouton panier
+            const badge = document.getElementById('cart-badge');
+            badge.classList.add('scale-125');
+            setTimeout(() => badge.classList.remove('scale-125'), 200);
+            
             alert(`${product.name} ajouté au panier !`);
         }
 
@@ -278,10 +327,10 @@
                             <p class="text-xs text-gray-500">${sizeInfo}${colorInfo}</p>
                             <p class="text-purple-600 font-bold text-sm">${item.price} $</p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="changeQuantity(${index}, -1)" class="bg-gray-200 w-6 h-6 rounded flex items-center justify-center text-gray-600">-</button>
-                            <span class="text-sm font-medium">${item.quantity}</span>
-                            <button onclick="changeQuantity(${index}, 1)" class="bg-gray-200 w-6 h-6 rounded flex items-center justify-center text-gray-600">+</button>
+                        <div class="flex items-center gap-2 bg-white rounded-lg border border-gray-200 p-1">
+                            <button onclick="changeQuantity(${index}, -1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-purple-600">-</button>
+                            <span class="text-sm font-medium w-4 text-center">${item.quantity}</span>
+                            <button onclick="changeQuantity(${index}, 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-purple-600">+</button>
                         </div>
                     </div>
                 `;
@@ -439,7 +488,8 @@
             
             const { data: products, error } = await supabase
                 .from('products')
-                .select('*');
+                .select('*')
+                .order('id', { ascending: false }); // Les plus récents en premier
 
             if (error) {
                 console.error('Erreur Supabase:', error);
@@ -473,13 +523,14 @@
                 const productJson = JSON.stringify(product).replace(/"/g, '&quot;');
 
                 grid.innerHTML += `
-                    <div onclick="window.location.href='produit.html?id=${product.id}'" class="bg-white p-3 rounded-2xl shadow-sm cursor-pointer active:scale-95 transition">
-                        <div class="bg-gray-100 rounded-xl h-32 flex items-center justify-center mb-2 overflow-hidden">
+                    <div onclick="window.location.href='produit.html?id=${product.id}'" class="product-card bg-white p-3 rounded-2xl shadow-sm border border-gray-100 cursor-pointer">
+                        <div class="bg-gray-50 rounded-xl h-32 flex items-center justify-center mb-2 overflow-hidden relative">
                             ${imageHtml}
+                            <!-- Petit badge "Nouveau" si le produit a moins de 7 jours (optionnel) -->
                         </div>
                         <h4 class="font-semibold text-sm text-gray-800 truncate">${product.name}</h4>
                         <p class="text-purple-600 font-bold mt-1">${product.price} $</p>
-                        <button onclick="event.stopPropagation(); addToCart(${productJson})" class="w-full mt-2 bg-purple-100 text-purple-700 font-bold py-2 rounded-lg text-sm active:scale-95 transition">Ajouter</button>
+                        <button onclick="event.stopPropagation(); addToCart(${productJson})" class="w-full mt-3 bg-purple-50 text-purple-700 font-bold py-2 rounded-lg text-sm active:scale-95 transition hover:bg-purple-100">Ajouter</button>
                     </div>
                 `;
             });
