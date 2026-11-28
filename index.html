@@ -173,8 +173,7 @@
             </div>
             <h3 class="text-2xl font-bold text-gray-800 mb-2">Commande Placée !</h3>
             <p class="text-gray-500 mb-6">Votre commande a été enregistrée avec succès. Nous vous contacterons pour la livraison.</p>
-            <!-- Le bouton sera modifié dynamiquement par le script -->
-            <button onclick="closeSuccess()" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition">Retour à la boutique</button>
+            <button id="success-action-btn" onclick="closeSuccess()" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition">Retour à la boutique</button>
         </div>
     </div>
 
@@ -376,7 +375,7 @@
                 console.error('Erreur envoi email:', emailError);
             }
 
-            // 3. Préparer le message WhatsApp
+            // 3. Préparer le message WhatsApp (SANS EMOJIS)
             let whatsappUrl = '';
             if (paymentMethod === 'WhatsApp') {
                 const itemsList = cart.map(item => 
@@ -385,11 +384,11 @@
                 
                 const whatsappMessage = encodeURIComponent(
                     `Bonjour Marketflow ! Je viens de passer la commande suivante :\n\n` +
-                    `👤 Nom : ${name}\n` +
-                    `📞 Téléphone : ${phone}\n` +
-                    `📍 Adresse : ${address}\n\n` +
-                    `🛒 Articles :\n${itemsList}\n\n` +
-                    `💰 Total : ${total.toFixed(2)} $\n\n` +
+                    `Nom : ${name}\n` +
+                    `Telephone : ${phone}\n` +
+                    `Adresse : ${address}\n\n` +
+                    `Articles :\n${itemsList}\n\n` +
+                    `Total : ${total.toFixed(2)} $\n\n` +
                     `Merci de me confirmer la disponibilité et les modalités de paiement.`
                 );
                 whatsappUrl = `https://wa.me/2250500358993?text=${whatsappMessage}`;
@@ -406,7 +405,7 @@
             document.getElementById('success-modal').classList.add('flex');
 
             // 6. Modifier le bouton du message de succès
-            const successBtn = document.querySelector('#success-modal button');
+            const successBtn = document.getElementById('success-action-btn');
             if (paymentMethod === 'WhatsApp' && whatsappUrl) {
                 successBtn.textContent = 'Ouvrir WhatsApp';
                 successBtn.onclick = function() {
