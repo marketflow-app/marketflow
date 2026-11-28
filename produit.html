@@ -38,6 +38,34 @@
         <p class="text-center text-gray-500 py-10">Chargement...</p>
     </div>
 
+    <!-- Section des Avis -->
+    <div class="bg-white rounded-t-3xl p-6 shadow-sm mb-4 mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Avis clients</h3>
+            <span id="average-rating" class="text-sm font-bold text-gray-500">0/5</span>
+        </div>
+        
+        <!-- Formulaire d'avis -->
+        <div class="bg-gray-50 p-4 rounded-xl mb-4">
+            <p class="text-sm font-bold text-gray-700 mb-2">Laisser un avis</p>
+            <div class="flex gap-1 mb-3" id="star-rating-input">
+                <button onclick="setRating(1)" class="text-3xl text-gray-300 star-btn" data-value="1">★</button>
+                <button onclick="setRating(2)" class="text-3xl text-gray-300 star-btn" data-value="2">★</button>
+                <button onclick="setRating(3)" class="text-3xl text-gray-300 star-btn" data-value="3">★</button>
+                <button onclick="setRating(4)" class="text-3xl text-gray-300 star-btn" data-value="4">★</button>
+                <button onclick="setRating(5)" class="text-3xl text-gray-300 star-btn" data-value="5">★</button>
+            </div>
+            <input type="text" id="review-name" placeholder="Ton nom" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <textarea id="review-comment" placeholder="Ton commentaire..." rows="2" class="w-full p-2 border border-gray-300 rounded-lg text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+            <button onclick="submitReview()" class="w-full bg-purple-100 text-purple-700 font-bold py-2 rounded-lg text-sm active:scale-95 transition">Envoyer l'avis</button>
+        </div>
+
+        <!-- Liste des avis -->
+        <div id="reviews-list" class="space-y-3">
+            <p class="text-center text-gray-400 text-sm">Chargement des avis...</p>
+        </div>
+    </div>
+
     <!-- Barre de navigation en bas -->
     <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 flex justify-around py-3 z-50">
         <a href="index.html" class="text-gray-400 flex flex-col items-center">
@@ -121,7 +149,7 @@
                     <div class="mt-4">
                         <p class="text-sm font-bold text-gray-700 mb-2">Taille</p>
                         <div class="flex gap-2 flex-wrap">
-                            ${sizes.map((size, i) => `
+                            ${sizes.map((size) => `
                                 <button onclick="selectSize('${size}', this)" class="size-btn border-2 border-gray-200 rounded-xl px-4 py-2 text-sm font-medium text-gray-600 active:scale-95 transition">${size}</button>
                             `).join('')}
                         </div>
@@ -210,7 +238,7 @@
             // On crée un identifiant unique pour le panier (produit + taille + couleur)
             const cartItemId = `${currentProduct.id}-${selectedSize || 'none'}-${selectedColor || 'none'}`;
 
-            // On recharge le panier depuis le localStorage (au cas où il a changé)
+            // On recharge le panier depuis le localStorage
             let currentCart = JSON.parse(localStorage.getItem('marketflow_cart')) || [];
 
             const existing = currentCart.find(item => item.cartItemId === cartItemId);
@@ -235,8 +263,106 @@
             alert(`${currentProduct.name} ajouté au panier !`);
         }
 
+        // --- GESTION DES AVIS ---
+        let selectedRating = 5; // Par défaut 5 étoiles
+
+        window.setRating = function(value) {
+            selectedRating = value;
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                if (parseInt(btn.dataset.value) <= value) {
+                    btn.classList.remove('text-gray-300');
+                    btn.classList.add('text-yellow-400');
+                } else {
+                    btn.classList.add('text-gray-300');
+                    btn.classList.remove('text-yellow-400');
+                }
+            });
+        }
+
+        async function loadReviews() {
+            const container = document.getElementById('reviews-list');
+            const ratingDisplay = document.getElementById('average-rating');
+
+            if (!productId) return;
+
+            const { data: reviews, error } = await supabase
+                .from('reviews')
+                .select('*')
+                .eq('product_id', productId)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                container.innerHTML = `<p class="text-red-500 text-sm">Erreur: ${error.message}</p>`;
+                return;
+            }
+
+            if (!reviews || reviews.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400 text-sm">Aucun avis pour le moment.</p>';
+                ratingDisplay.textContent = 'Nouveau';
+                return;
+            }
+
+            // Calcul de la moyenne
+            const total = reviews.reduce((sum, r) => sum + r.rating, 0);
+            const average = (total / reviews.length).toFixed(1);
+            ratingDisplay.textContent = `${average}/5 (${reviews.length} avis)`;
+            ratingDisplay.classList.add('text-yellow-600');
+
+            container.innerHTML = '';
+            reviews.forEach(review => {
+                const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                const date = new Date(review.created_at).toLocaleDateString('fr-FR');
+                
+                container.innerHTML += `
+                    <div class="bg-gray-50 p-3 rounded-xl">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="font-bold text-sm text-gray-800">${review.customer_name}</p>
+                            <p class="text-xs text-gray-400">${date}</p>
+                        </div>
+                        <p class="text-yellow-500 text-sm mb-1">${stars}</p>
+                        <p class="text-sm text-gray-600">${review.comment}</p>
+                    </div>
+                `;
+            });
+        }
+
+        window.submitReview = async function() {
+            const name = document.getElementById('review-name').value.trim();
+            const comment = document.getElementById('review-comment').value.trim();
+
+            if (!name) {
+                alert("Veuillez entrer votre nom.");
+                return;
+            }
+
+            const { error } = await supabase
+                .from('reviews')
+                .insert([
+                    {
+                        product_id: productId,
+                        customer_name: name,
+                        rating: selectedRating,
+                        comment: comment || 'Pas de commentaire.'
+                    }
+                ]);
+
+            if (error) {
+                alert("Erreur lors de l'envoi de l'avis: " + error.message);
+                return;
+            }
+
+            // On vide les champs et on recharge les avis
+            document.getElementById('review-name').value = '';
+            document.getElementById('review-comment').value = '';
+            alert("Merci pour ton avis !");
+            loadReviews();
+        }
+
         // Initialisation
         loadProduct();
+        loadReviews();
+        // Activer 5 étoiles par défaut visuellement
+        setTimeout(() => { setRating(5); }, 100);
     </script>
 
 </body>
