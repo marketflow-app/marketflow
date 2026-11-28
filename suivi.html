@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketflow - Suivi de commande</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #f3f4f6; }
+        .purple-gradient { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+        .status-pending { background-color: #fef3c7; color: #92400e; }
+        .status-shipped { background-color: #dbeafe; color: #1e40af; }
+        .status-delivered { background-color: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <!-- En-tête -->
+    <header class="purple-gradient text-white p-4 flex items-center gap-3 sticky top-0 z-40">
+        <button onclick="window.location.href='index.html'" class="p-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <h1 class="text-lg font-bold">Suivi de commande</h1>
+    </header>
+
+    <!-- Formulaire de recherche -->
+    <div class="p-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm text-center">
+            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Où est ma commande ?</h2>
+            <p class="text-gray-500 text-sm mb-6">Entre le numéro de téléphone utilisé lors de la commande.</p>
+            
+            <input type="tel" id="phone-search" placeholder="Ex: 0500358993" class="w-full p-3 border border-gray-300 rounded-xl text-center focus:outline-none focus:ring-2 focus:ring-purple-500 mb-4">
+            <button onclick="trackOrder()" class="w-full purple-gradient text-white font-bold py-3 rounded-xl active:scale-95 transition">Rechercher</button>
+        </div>
+
+        <!-- Résultats -->
+        <div id="results-container" class="mt-6 space-y-4 hidden">
+            <!-- Les commandes trouvées s'afficheront ici -->
+        </div>
+    </div>
+
+    <!-- Script Supabase -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        const SUPABASE_URL = 'https://yhjztyveqjptqvbozyqu.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_UbrfniqRP6waSl1gHOXErw_dXeGDlUL';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        window.trackOrder = async function() {
+            const phoneInput = document.getElementById('phone-search').value.trim();
+            const resultsContainer = document.getElementById('results-container');
+            
+            if (!phoneInput) {
+                alert("Veuillez entrer un numéro de téléphone.");
+                return;
+            }
+
+            // On affiche un chargement
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = '<p class="text-center text-gray-500 py-4">Recherche en cours...</p>';
+
+            // On cherche la commande avec ce numéro
+            const { data: orders, error } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('customer_phone', phoneInput)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                resultsContainer.innerHTML = `<div class="bg-red-100 text-red-700 p-4 rounded-xl text-sm">Erreur: ${error.message}</div>`;
+                return;
+            }
+
+            if (!orders || orders.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm text-center">
+                        <p class="text-gray-500">Aucune commande trouvée avec ce numéro.</p>
+                        <p class="text-sm text-gray-400 mt-2">Vérifie que tu as bien utilisé le même numéro lors de la commande.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // On affiche les commandes trouvées
+            resultsContainer.innerHTML = '';
+            orders.forEach(order => {
+                const date = new Date(order.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const statusClass = order.status === 'pending' ? 'status-pending' : (order.status === 'shipped' ? 'status-shipped' : 'status-delivered');
+                const statusText = order.status === 'pending' ? 'En attente' : (order.status === 'shipped' ? 'Expédiée' : 'Livrée');
+                
+                let itemsHtml = '';
+                if (Array.isArray(order.items)) {
+                    itemsHtml = order.items.map(item => 
+                        `<li class="text-sm text-gray-700">${item.quantity}x ${item.name} - ${item.price} $</li>`
+                    ).join('');
+                }
+
+                resultsContainer.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <p class="text-xs text-gray-400 uppercase font-bold">Commande #${order.id}</p>
+                                <p class="text-sm text-gray-500">${date}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-3 rounded-xl mb-3">
+                            <p class="text-xs font-bold text-gray-500 uppercase mb-1">Articles</p>
+                            <ul class="list-disc list-inside">${itemsHtml}</ul>
+                        </div>
+                        
+                        <div class="flex justify-between items-center pt-3 border-t">
+                            <span class="text-sm font-bold text-gray-700">Total</span>
+                            <span class="font-bold text-purple-600">${order.total_amount} $</span>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <strong>Livraison :</strong> ${order.customer_address}
+                        </div>
+                        <div class="mt-1 text-sm text-gray-600">
+                            <strong>Paiement :</strong> ${order.payment_method || 'Non spécifié'}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+
+</body>
+</html>
